@@ -175,7 +175,7 @@ class TimeSeriesLSTMModel:
 
     def __init__(self):
         self.model = None
-        self.model_path = os.path.join(settings.ML_MODELS_DIR, "lstm_model")
+        self.model_path = os.path.join(settings.ML_MODELS_DIR, "lstm_model.h5")
         self.tf_available = False
         
         # Test TensorFlow availability
