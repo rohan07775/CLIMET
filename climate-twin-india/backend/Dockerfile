@@ -19,5 +19,5 @@ COPY . .
 
 EXPOSE 8000
 
-# Start FastAPI application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Automatically seed database, train models, and start the FastAPI application
+CMD ["sh", "-c", "python -m app.db.init_db && python -m app.ml.train --model all && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
