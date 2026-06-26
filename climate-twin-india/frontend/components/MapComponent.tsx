@@ -115,7 +115,36 @@ export default function MapComponent({
           />
         )}
 
-        {/* Render weather circles for all states/UTs */}
+        {/* 1. Heatmap Blur Layer (Underneath) */}
+        {weatherData.map((stateInfo) => {
+          const stateCoords = INDIAN_STATES[stateInfo.state]
+          if (!stateCoords) return null
+
+          const val = stateInfo[activeParameter] || 0
+          const color = getCircleColor(val, activeParameter)
+
+          // Adjust radius dynamically based on the value to make it look like a real heatmap
+          let heatRadius = 60
+          if (activeParameter === 'temperature' && val > 0) {
+            heatRadius = Math.min(100, Math.max(50, val * 2.2))
+          } else if (activeParameter === 'rainfall' && val > 0) {
+            heatRadius = Math.min(100, Math.max(45, val * 3))
+          }
+
+          return (
+            <CircleMarker
+              key={`heat-${stateInfo.state}`}
+              center={[stateCoords.lat, stateCoords.lon]}
+              radius={heatRadius}
+              fillColor={color}
+              stroke={false}
+              fillOpacity={0.7}
+              className="heatmap-node"
+            />
+          )
+        })}
+
+        {/* 2. Interactive Points Layer (On Top) */}
         {weatherData.map((stateInfo) => {
           const stateCoords = INDIAN_STATES[stateInfo.state]
           if (!stateCoords) return null
@@ -126,14 +155,14 @@ export default function MapComponent({
 
           return (
             <CircleMarker
-              key={stateInfo.state}
+              key={`point-${stateInfo.state}`}
               center={[stateCoords.lat, stateCoords.lon]}
-              radius={isSelected ? 18 : 12}
+              radius={isSelected ? 10 : 6}
               fillColor={color}
-              color={isSelected ? '#FFFFFF' : color}
-              weight={isSelected ? 3 : 1}
-              opacity={0.8}
-              fillOpacity={0.5}
+              color={isSelected ? '#FFFFFF' : '#050B14'}
+              weight={isSelected ? 2.5 : 1}
+              opacity={0.9}
+              fillOpacity={0.95}
               eventHandlers={{
                 click: () => onStateSelect(stateInfo.state),
               }}

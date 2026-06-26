@@ -472,3 +472,12 @@ select.input-neon option {
   background: #0A1628;
   color: #E8F4FD;
 }
+
+/* ─── Leaflet Heatmap Blur Effect ───────────────────────────── */
+.heatmap-node {
+  filter: blur(35px) saturate(1.8);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0.75;
+  transition: all 0.5s ease-in-out;
+}
