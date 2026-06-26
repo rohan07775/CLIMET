@@ -1,7 +1,10 @@
 import axios from 'axios'
 
-// API base URL defaults to localhost:8000 for local docker compose development
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// API base URL defaults to localhost:8000 for local development, or automatically falls back to Railway in production
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+    ? 'https://climet-production.up.railway.app'
+    : 'http://localhost:8000')
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
