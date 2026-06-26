@@ -1,10 +1,7 @@
 import axios from 'axios'
 
-// API base URL defaults to localhost:8000 for local development, or automatically falls back to Railway in production
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
-    ? 'https://climet-production.up.railway.app'
-    : 'http://localhost:8000')
+// API base URL defaults to the live Railway domain in production, or uses NEXT_PUBLIC_API_URL if configured (e.g. localhost)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://climet-production.up.railway.app'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
