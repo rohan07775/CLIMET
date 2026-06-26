@@ -56,19 +56,31 @@ async def get_7day_prediction(state_name: str, db: AsyncSession = Depends(get_db
             detail=f"State '{state_name}' not found."
         )
 
-    # Fetch last weather reading from DB as base value
-    result = await db.execute(
-        select(WeatherData)
-        .where(WeatherData.state == matching_state)
-        .order_by(WeatherData.recorded_at.desc())
-        .limit(1)
-    )
-    last_reading = result.scalars().first()
+    # Fetch live current weather as base value for predictions to align with real-world data
+    from app.services.weather_service import weather_service
+    live_weather = await weather_service.get_state_weather(matching_state)
     
-    # Base parameters for prediction feedback loop
-    base_temp = last_reading.temperature if last_reading else 28.0
-    base_rain = last_reading.rainfall if last_reading else 0.0
-    base_hum = last_reading.humidity if last_reading else 60.0
+    base_temp = 28.0
+    base_rain = 0.0
+    base_hum = 60.0
+    
+    if live_weather:
+        base_temp = live_weather.get("temperature") or base_temp
+        base_rain = live_weather.get("rainfall") or base_rain
+        base_hum = live_weather.get("humidity") or base_hum
+    else:
+        # Fallback to DB if live weather API is down
+        result = await db.execute(
+            select(WeatherData)
+            .where(WeatherData.state == matching_state)
+            .order_by(WeatherData.recorded_at.desc())
+            .limit(1)
+        )
+        last_reading = result.scalars().first()
+        if last_reading:
+            base_temp = last_reading.temperature
+            base_rain = last_reading.rainfall
+            base_hum = last_reading.humidity
 
     # Get XGBoost predictions
     temp_preds = xgb_temp.predict(matching_state, base_temp, steps=7)
