@@ -481,3 +481,32 @@ select.input-neon option {
   opacity: 0.85;
   transition: all 0.5s ease-in-out;
 }
+
+/* ─── Wind Flow Animations ───────────────────────────────────── */
+@keyframes wind-streak-flow {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.75;
+  }
+  85% {
+    opacity: 0.75;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.wind-line {
+  stroke-dasharray: 12, 28;
+  animation: wind-streak-flow 1.5s linear infinite;
+}
+
+.wind-icon-container {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
