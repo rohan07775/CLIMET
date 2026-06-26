@@ -47,15 +47,16 @@ app = FastAPI(
 )
 
 # Configure CORS for Next.js app integration
-# In development, allow localhost:3000; in production, configure properly.
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://climet.vercel.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
