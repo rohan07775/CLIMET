@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { INDIAN_STATES } from '@/utils/states_coords'
@@ -40,10 +40,26 @@ export default function MapComponent({
 }: MapComponentProps) {
   const [mapCenter] = useState<[number, number]>([22.5726, 78.9629]) // Center of India
   const [mapZoom] = useState<number>(5)
+  const [radarPath, setRadarPath] = useState<string | null>(null)
 
   useEffect(() => {
     fixLeafletIcons()
   }, [])
+
+  // Fetch latest RainViewer radar timestamp path when looking at rainfall
+  useEffect(() => {
+    if (activeParameter === 'rainfall') {
+      fetch('https://api.rainviewer.com/public/weather-maps.json')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
+            const latest = data.radar.past[data.radar.past.length - 1]
+            setRadarPath(latest.path)
+          }
+        })
+        .catch((err) => console.error('Failed to load RainViewer radar path', err))
+    }
+  }, [activeParameter])
 
   // Helper to color circles based on selected climate parameter
   const getCircleColor = (val: number, param: string): string => {
@@ -97,13 +113,13 @@ export default function MapComponent({
       {/* SVG Blur Filter for Heatmap circles */}
       <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
         <defs>
-          <filter id="heat-blur" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="30" />
+          <filter id="heat-blur" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="55" />
             <feColorMatrix type="matrix" values="
               1 0 0 0 0
               0 1 0 0 0
               0 0 1 0 0
-              0 0 0 1.8 -0.1" />
+              0 0 0 2.2 -0.1" />
           </filter>
         </defs>
       </svg>
@@ -122,6 +138,15 @@ export default function MapComponent({
           maxZoom={20}
         />
 
+        {/* Live RainViewer Radar Tile Layer for continuous rainfall maps (Zoom Earth style) */}
+        {activeParameter === 'rainfall' && radarPath && (
+          <TileLayer
+            url={`https://tilecache.rainviewer.com${radarPath}/256/{z}/{x}/{y}/2/1_1.png`}
+            opacity={0.65}
+            zIndex={5}
+          />
+        )}
+
         {selectedState && INDIAN_STATES[selectedState] && (
           <ChangeView
             center={[INDIAN_STATES[selectedState].lat, INDIAN_STATES[selectedState].lon]}
@@ -129,30 +154,25 @@ export default function MapComponent({
           />
         )}
 
-        {/* 1. Heatmap Blur Layer (Underneath) */}
-        {weatherData.map((stateInfo) => {
+        {/* 1. Heatmap Blur Layer (Underneath) - Using geographical Circles so they scale when zooming */}
+        {activeParameter !== 'rainfall' && weatherData.map((stateInfo) => {
           const stateCoords = INDIAN_STATES[stateInfo.state]
           if (!stateCoords) return null
 
           const val = stateInfo[activeParameter] || 0
           const color = getCircleColor(val, activeParameter)
 
-          // Adjust radius dynamically based on the value to make it look like a real heatmap
-          let heatRadius = 60
-          if (activeParameter === 'temperature' && val > 0) {
-            heatRadius = Math.min(100, Math.max(50, val * 2.2))
-          } else if (activeParameter === 'rainfall' && val > 0) {
-            heatRadius = Math.min(100, Math.max(45, val * 3))
-          }
+          // Geographical radius in meters (350 km) so they overlap and cover all districts/cities when zooming in
+          const geoRadiusMeters = 350000
 
           return (
-            <CircleMarker
+            <Circle
               key={`heat-${stateInfo.state}`}
               center={[stateCoords.lat, stateCoords.lon]}
-              radius={heatRadius}
+              radius={geoRadiusMeters}
               fillColor={color}
               stroke={false}
-              fillOpacity={0.7}
+              fillOpacity={0.65}
               className="heatmap-node"
             />
           )
