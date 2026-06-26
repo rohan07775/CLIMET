@@ -86,12 +86,133 @@ export default function AnalyticsPage() {
   }
 
   const triggerPDFDownload = () => {
-    toast.loading('Generating District Climate Vulnerability Index PDF Report...', {
-      duration: 2000,
-    })
-    setTimeout(() => {
-      toast.success('PDF Report downloaded successfully! (ClimaTwin_India_Report.pdf)')
-    }, 2000)
+    const toastId = toast.loading('Generating District Climate Vulnerability Index PDF Report...')
+    
+    if (typeof window !== 'undefined') {
+      // Check if jsPDF script is already added, otherwise load it dynamically
+      const existingScript = document.getElementById('jspdf-cdn-script')
+      
+      const generatePDF = () => {
+        try {
+          const { jsPDF } = (window as any).jspdf
+          const doc = new jsPDF()
+          
+          // Styled header
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(22)
+          doc.setTextColor(10, 22, 40)
+          doc.text('ClimaTwin India - Climate Analytics Report', 20, 20)
+          
+          // Blue divider line
+          doc.setDrawColor(0, 212, 255)
+          doc.setLineWidth(1)
+          doc.line(20, 24, 190, 24)
+          
+          // Report Metadata
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(10)
+          doc.setTextColor(120, 120, 120)
+          doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 20, 30)
+          doc.text(`Target Region: ${selectedState} State Node`, 20, 35)
+          
+          // Section 1: Telemetry Data
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(14)
+          doc.setTextColor(10, 22, 40)
+          doc.text('1. Historical Climate Telemetry (Last 15 Days)', 20, 48)
+          
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(9.5)
+          doc.setTextColor(60, 60, 60)
+          
+          let y = 56
+          const displayData = historicalData.slice(0, 15)
+          
+          if (displayData.length > 0) {
+            displayData.forEach((data, index) => {
+              const dateStr = new Date(data.recorded_at).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })
+              doc.text(
+                `Day ${index + 1}: ${dateStr} | Temp: ${data.temperature}°C | Rain: ${data.rainfall} mm | Humidity: ${data.humidity}% | AQI: ${data.aqi}`,
+                25,
+                y
+              )
+              y += 7.5
+            })
+          } else {
+            doc.text('No historical data found in records.', 25, y)
+            y += 10
+          }
+          
+          // Section 2: Carbon Footprint scoring
+          y += 5
+          doc.setFont('helvetica', 'bold')
+          doc.setFontSize(14)
+          doc.setTextColor(10, 22, 40)
+          doc.text('2. Greenhouse Gas & Carbon Scoring Index', 20, y)
+          
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(9.5)
+          doc.setTextColor(60, 60, 60)
+          y += 8
+          
+          if (carbonResult) {
+            doc.text(`Monthly Electricity Power: ${electricity} kWh`, 25, y)
+            doc.text(`Monthly Transport Travel: ${transport} km`, 25, y + 6)
+            doc.text(`Monthly Fuel Consumed: ${fuel} Liters`, 25, y + 12)
+            doc.text(`Monthly Waste Generated: ${waste} kg`, 25, y + 18)
+            
+            y += 26
+            doc.setFont('helvetica', 'bold')
+            doc.text(`Calculated CO2 Footprint: ${carbonResult.co2_emissions_kg} kg CO2/month`, 25, y)
+            doc.text(`Overall Carbon Rating Score: ${carbonResult.carbon_score} / 100`, 25, y + 6)
+            doc.text(`Local Sustainability Rating: ${carbonResult.sustainability_score} %`, 25, y + 12)
+            
+            y += 22
+            doc.setFont('helvetica', 'bold')
+            doc.setTextColor(99, 102, 241) // Purple
+            doc.text('Offset Advisory & Recommendations:', 25, y)
+            doc.setFont('helvetica', 'normal')
+            doc.setTextColor(60, 60, 60)
+            doc.text(carbonResult.recommendations[0], 25, y + 6, { maxWidth: 165 })
+          } else {
+            doc.text('No carbon scoring metrics calculated for this session. Use the calculator to include footprint logs.', 25, y)
+          }
+          
+          // Footer
+          doc.setFont('helvetica', 'italic')
+          doc.setFontSize(8)
+          doc.setTextColor(150, 150, 150)
+          doc.text('ClimaTwin India - National Hackathon 2026 Climate Intelligence Track. All rights reserved.', 20, 285)
+          
+          // Save and Trigger browser download
+          doc.save(`ClimaTwin_India_${selectedState}_Report.pdf`)
+          toast.dismiss(toastId)
+          toast.success('PDF Report downloaded successfully!')
+        } catch (err) {
+          console.error(err)
+          toast.dismiss(toastId)
+          toast.error('Failed to compile and download PDF Report.')
+        }
+      }
+      
+      if (existingScript) {
+        generatePDF()
+      } else {
+        const script = document.createElement('script')
+        script.id = 'jspdf-cdn-script'
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+        script.onload = generatePDF
+        script.onerror = () => {
+          toast.dismiss(toastId)
+          toast.error('Failed to load PDF compilation library.')
+        }
+        document.body.appendChild(script)
+      }
+    }
   }
 
   // Setup Chart datasets
@@ -329,6 +450,15 @@ export default function AnalyticsPage() {
                     {carbonResult.recommendations[0]}
                   </p>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={triggerPDFDownload}
+                  className="w-full text-center text-xs py-2 font-bold tracking-widest text-[#050B14] bg-neon-purple rounded-lg hover:bg-purple-500 transition-colors flex items-center justify-center gap-1.5 mt-1 shadow-[0_0_10px_rgba(168,85,247,0.4)]"
+                >
+                  <Download size={12} />
+                  <span>Download PDF Report</span>
+                </button>
               </motion.div>
             )}
           </GlassCard>
