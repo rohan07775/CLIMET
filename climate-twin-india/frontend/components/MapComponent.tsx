@@ -94,6 +94,20 @@ export default function MapComponent({
 
   return (
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-dark-border shadow-2xl z-20">
+      {/* SVG Blur Filter for Heatmap circles */}
+      <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+        <defs>
+          <filter id="heat-blur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="30" />
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 1.8 -0.1" />
+          </filter>
+        </defs>
+      </svg>
+
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
