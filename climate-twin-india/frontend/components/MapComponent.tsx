@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Circle, Marker } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Circle, Marker, GeoJSON } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { INDIAN_STATES } from '@/utils/states_coords'
@@ -57,13 +57,26 @@ export default function MapComponent({
   const [mapZoom] = useState<number>(5)
   const [currentZoom, setCurrentZoom] = useState<number>(5)
   const [radarPath, setRadarPath] = useState<string | null>(null)
+  const [indiaGeoJson, setIndiaGeoJson] = useState<any>(null)
 
   useEffect(() => {
     fixLeafletIcons()
+    
+    // Fetch India boundary GeoJSON to draw the glowing outline
+    fetch('https://raw.githubusercontent.com/lokeshdhakar/india-geojson/master/india.geojson')
+      .then((res) => {
+        if (!res.ok) throw new Error('Network response not ok')
+        return res.json()
+      })
+      .then((data) => setIndiaGeoJson(data))
+      .catch((err) => console.warn('Could not fetch India GeoJSON outline:', err))
   }, [])
 
   // Dynamically scale heatmap blur standard deviation to keep the temperature layer smooth
   const blurDeviation = Math.round(55 * Math.pow(1.6, Math.max(0, currentZoom - 5)))
+
+  // Find weather record for the currently selected state
+  const selectedWeather = weatherData.find((w) => w.state === selectedState)
 
   // Fetch latest RainViewer radar timestamp path when looking at rainfall
   useEffect(() => {
@@ -155,6 +168,81 @@ export default function MapComponent({
     })
   }
 
+  // Pulse wave animation icon generator
+  const createPulseIcon = (color: string, isSelected: boolean) => {
+    return L.divIcon({
+      className: 'custom-pulse-container',
+      html: `
+        <div class="pulse-node-wrapper" style="position: relative; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;">
+          <div class="pulse-ring" style="
+            position: absolute;
+            width: ${isSelected ? '32px' : '22px'};
+            height: ${isSelected ? '32px' : '22px'};
+            border-radius: 50%;
+            background: ${color};
+            opacity: 0.45;
+            animation: map-node-pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+          "></div>
+          <div class="pulse-core" style="
+            width: ${isSelected ? '12px' : '8px'};
+            height: ${isSelected ? '12px' : '8px'};
+            border-radius: 50%;
+            background: ${color};
+            border: 1.5px solid #FFFFFF;
+            box-shadow: 0 0 10px ${color};
+          "></div>
+        </div>
+      `,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    })
+  }
+
+  // Sci-Fi leader line annotation tag generator
+  const createLeaderTag = (label: string, value: string, color: string) => {
+    return L.divIcon({
+      className: 'leader-tag-container',
+      html: `
+        <div style="position: relative; pointer-events: none; display: flex; flex-direction: column; align-items: center; transform: translate(45px, -35px);">
+          <!-- Diagonal Leader Line pointing to the coordinate -->
+          <div style="
+            position: absolute;
+            bottom: -15px;
+            left: -32px;
+            width: 38px;
+            height: 1px;
+            background: ${color};
+            transform: rotate(-35deg);
+            transform-origin: bottom left;
+            box-shadow: 0 0 8px ${color};
+          "></div>
+          <!-- Futuristic HUD Annotation Box -->
+          <div style="
+            background: rgba(5, 11, 20, 0.92);
+            border: 1.5px solid ${color};
+            box-shadow: 0 0 20px ${color}55, inset 0 0 10px rgba(0,0,0,0.8);
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: bold;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            backdrop-filter: blur(10px);
+          ">
+            <span style="color: ${color}; font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; font-family: 'Orbitron', sans-serif;">${label}</span>
+            <span style="font-family: 'Orbitron', sans-serif;">${value}</span>
+          </div>
+        </div>
+      `,
+      iconSize: [120, 50],
+      iconAnchor: [0, 0],
+    })
+  }
+
   return (
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-dark-border shadow-2xl z-20">
       {/* SVG Blur Filter for Heatmap circles */}
@@ -186,6 +274,20 @@ export default function MapComponent({
           subdomains="abcd"
           maxZoom={20}
         />
+
+        {/* Glowing India boundary GeoJSON outline */}
+        {indiaGeoJson && (
+          <GeoJSON
+            data={indiaGeoJson}
+            style={() => ({
+              color: '#00D4FF', // Neon blue outline
+              weight: 1.5,
+              fillColor: 'transparent',
+              opacity: 0.5,
+              dashArray: '4, 5'
+            })}
+          />
+        )}
 
         {/* Live RainViewer Radar Tile Layer for continuous rainfall maps (Zoom Earth style) */}
         {activeParameter === 'rainfall' && radarPath && (
@@ -241,6 +343,26 @@ export default function MapComponent({
               icon={createWindIcon(stateInfo.wind_speed)}
               interactive={false}
               zIndexOffset={-50}
+            />
+          )
+        })}
+
+        {/* 1.8 Pulsing Core and Ring Waves (Underneath points) */}
+        {weatherData.map((stateInfo) => {
+          const stateCoords = INDIAN_STATES[stateInfo.state]
+          if (!stateCoords) return null
+
+          const val = stateInfo[activeParameter] || 0
+          const color = getCircleColor(val, activeParameter)
+          const isSelected = selectedState === stateInfo.state
+
+          return (
+            <Marker
+              key={`pulse-${stateInfo.state}`}
+              position={[stateCoords.lat, stateCoords.lon]}
+              icon={createPulseIcon(color, isSelected)}
+              interactive={false}
+              zIndexOffset={-10}
             />
           )
         })}
@@ -325,6 +447,20 @@ export default function MapComponent({
             </CircleMarker>
           )
         })}
+
+        {/* 3. Glowing Annotations / Leader Line Tag (Selected State Node only) */}
+        {selectedState && INDIAN_STATES[selectedState] && selectedWeather && (
+          <Marker
+            position={[INDIAN_STATES[selectedState].lat, INDIAN_STATES[selectedState].lon]}
+            icon={createLeaderTag(
+              activeParameter.replace('_', ' '),
+              `${selectedWeather[activeParameter] || 0}${getParameterUnit(activeParameter)}`,
+              getCircleColor(selectedWeather[activeParameter] || 0, activeParameter)
+            )}
+            interactive={false}
+            zIndexOffset={100}
+          />
+        )}
       </MapContainer>
     </div>
   )
