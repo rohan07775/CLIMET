@@ -80,7 +80,33 @@ async def get_historical_weather(
     
     query = query.order_by(WeatherData.recorded_at.desc()).limit(limit)
     result = await db.execute(query)
-    readings = result.scalars().all()
+    readings = list(result.scalars().all())
+    
+    if readings:
+        from datetime import datetime, timezone, timedelta
+        # Find the maximum date in the returned readings
+        max_db_date = max(r.recorded_at for r in readings if r.recorded_at)
+        if max_db_date:
+            now_utc = datetime.now(timezone.utc)
+            # Make sure max_db_date has timezone info
+            if max_db_date.tzinfo is None:
+                max_db_date = max_db_date.replace(tzinfo=timezone.utc)
+            
+            # Align time details to match the database times
+            target_end_date = now_utc.replace(
+                hour=max_db_date.hour, 
+                minute=max_db_date.minute, 
+                second=max_db_date.second, 
+                microsecond=max_db_date.microsecond
+            )
+            shift_delta = target_end_date - max_db_date
+            
+            for r in readings:
+                if r.recorded_at:
+                    if r.recorded_at.tzinfo is None:
+                        r.recorded_at = r.recorded_at.replace(tzinfo=timezone.utc)
+                    r.recorded_at = r.recorded_at + shift_delta
+
     return readings
 
 

@@ -44,10 +44,6 @@ export default function RootLayout({
           <div className="sci-fi-grid-3d" />
         </div>
 
-        {/* Global horizontal scanning laser */}
-        <div className="fixed inset-x-0 h-full pointer-events-none z-50">
-          <div className="scan-laser" />
-        </div>
 
         {/* Ambient glow orbs */}
         <div className="fixed top-0 left-1/4 w-96 h-96 bg-neon-blue/5 rounded-full blur-3xl pointer-events-none z-0" />
