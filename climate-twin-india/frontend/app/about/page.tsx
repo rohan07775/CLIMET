@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import GlassCard from '@/components/ui/GlassCard'
-import { Info, Database, BookOpen, Layers, CheckCircle2, Users, Tv, Instagram, Youtube } from 'lucide-react'
+import { Info, Database, BookOpen, Layers, CheckCircle2, Users, Tv, Instagram, Youtube, Globe } from 'lucide-react'
 
 export default function AboutPage() {
   const architectures = [
@@ -32,6 +32,20 @@ export default function AboutPage() {
           Technical specifications, system design details, authoritative dataset citations, and active components checklists.
         </p>
       </div>
+
+      {/* Scientific Mandate & Mission Statement */}
+      <GlassCard className="hud-panel hud-corner-braces p-6 border border-[#00D4FF]/25" glowColor="blue">
+        <h2 className="text-sm font-bold font-orbitron text-neon-blue tracking-wider uppercase mb-4 flex items-center gap-1.5">
+          <Globe size={16} className="animate-pulse" />
+          <span>National Climate Intelligence Mandate</span>
+        </h2>
+        <p className="text-xs text-gray-300 leading-relaxed font-medium mb-3">
+          A digital twin of the climate system targeting adaptation is expected to make use of observations, integrate several climate models to consider uncertainty sources, include applications for climate-sensitive sectors directly connected to the climate models, and provide interfaces to configure the simulations, output, and data consumers.
+        </p>
+        <p className="text-xs text-gray-300 leading-relaxed font-medium">
+          An <strong>“AI-powered Digital Twin of India’s Climate using national datasets”</strong> refers to the creation of a high-fidelity, dynamic virtual replica of India’s climate system that continuously evolves using real-time and historical observations. This digital twin integrates multi-source data from Indian satellites (e.g., INSAT, Oceansat), ground-based meteorological networks (IMD), reanalysis products, and hydrological datasets to simulate atmospheric, oceanic, and land-surface processes at high spatial and temporal resolution. Leveraging advances in Artificial Intelligence, Machine Learning, and Data Assimilation, the system fuses heterogeneous datasets to generate near-real-time climate states and predictive scenarios.
+        </p>
+      </GlassCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
