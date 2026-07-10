@@ -221,6 +221,7 @@ export default function AnalyticsPage() {
         document.body.appendChild(script)
       }
     }
+  }
 
   // Generate multi-year baseline data dynamically depending on selected state
   const getMultiYearData = () => {
