@@ -219,6 +219,9 @@ export default function AnalyticsPage() {
           toast.error('Failed to load PDF compilation library.')
         }
         document.body.appendChild(script)
+      }
+    }
+
   // Generate multi-year baseline data dynamically depending on selected state
   const getMultiYearData = () => {
     const baselines: Record<string, { temp: number; rain: number; aqi: number }> = {
