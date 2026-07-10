@@ -74,26 +74,32 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="w-full max-w-7xl text-center flex flex-col items-center animate-fade-up">
+      <div className="w-full max-w-7xl text-center flex flex-col items-center animate-fade-up relative">
+        {/* Rotating Tech Rings behind Hero */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] tech-ring-container pointer-events-none hidden md:block">
+          <div className="w-full h-full tech-ring-1 absolute inset-0" />
+          <div className="w-8/12 h-8/12 tech-ring-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+
         {/* Header Badge */}
-        <div className="flex items-center gap-2 px-4 py-1.5 glass rounded-full text-xs font-semibold text-neon-blue mb-8 tracking-widest uppercase border border-neon-blue/20">
-          <Cpu size={14} className="animate-spin-slow" />
+        <div className="cyber-badge mb-8">
+          <Cpu size={12} className="animate-spin-slow text-neon-blue" />
           <span>ISRO MOSDAC + NASA POWER Integrated Data</span>
         </div>
 
         {/* Hero Title */}
-        <h1 className="text-4xl sm:text-6xl font-orbitron font-extrabold tracking-tight mb-6">
+        <h1 className="text-4xl sm:text-6xl font-orbitron font-extrabold tracking-tight mb-6 z-10 relative">
           Digital Twin of India's{' '}
           <span className="shimmer-text">Climate System</span>
         </h1>
 
         {/* Hero Subtitle */}
-        <p className="max-w-3xl text-base sm:text-lg text-[#8BB8D4] mb-12 leading-relaxed">
+        <p className="max-w-3xl text-base sm:text-lg text-[#8BB8D4] mb-12 leading-relaxed z-10 relative">
           A live, AI-driven computational replica modeling weather patterns, predicting natural disasters, calculating carbon offsets, and auditing agricultural risk levels across all 36 Indian states.
         </p>
 
         {/* Primary Call-to-actions */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-20">
+        <div className="flex flex-col sm:flex-row gap-4 mb-20 z-10 relative">
           <Link href="/climate-twin" className="btn-neon-solid flex items-center justify-center gap-2">
             <Globe size={18} />
             <span>Launch Climate Twin</span>
@@ -105,18 +111,23 @@ export default function Home() {
         </div>
 
         {/* System Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-20 z-10 relative">
           {[
-            { label: 'Observed States & UTs', value: '36' },
-            { label: 'Forecast Accuracy', value: '92.4%' },
-            { label: 'ML Prediction Pipeline', value: '4 Models' },
-            { label: 'Disaster Warning Lead', value: '< 2 hrs' },
+            { label: 'Observed States & UTs', value: '36', badgeType: 'green' },
+            { label: 'Forecast Accuracy', value: '92.4%', badgeType: 'blue' },
+            { label: 'ML Prediction Pipeline', value: '4 Models', badgeType: 'purple' },
+            { label: 'Disaster Warning Lead', value: '< 2 hrs', badgeType: 'red' },
           ].map((stat, idx) => (
-            <div key={idx} className="glass p-6 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-orbitron font-extrabold text-neon-blue mb-1 leading-none">
+            <div key={idx} className="hud-panel hud-corner-braces p-6 flex flex-col items-center justify-center text-center">
+              <span className="text-3xl font-orbitron font-extrabold text-white mb-1 leading-none flex items-center gap-1.5 justify-center">
+                <span className={`w-2 h-2 rounded-full animate-pulse ${
+                  stat.badgeType === 'green' ? 'bg-neon-green' :
+                  stat.badgeType === 'red' ? 'bg-accent-red' :
+                  stat.badgeType === 'purple' ? 'bg-neon-purple' : 'bg-neon-blue'
+                }`} />
                 {stat.value}
               </span>
-              <span className="text-xs text-[#4A6B85] tracking-wider uppercase font-semibold">
+              <span className="text-xs text-[#4A6B85] tracking-wider uppercase font-semibold mt-1">
                 {stat.label}
               </span>
             </div>
@@ -124,20 +135,21 @@ export default function Home() {
         </div>
 
         {/* Core Modules Grid */}
-        <div className="w-full text-left">
-          <h2 className="text-2xl sm:text-3xl font-orbitron font-bold text-center mb-12">
+        <div className="w-full text-left z-10 relative">
+          <h2 className="text-2xl sm:text-3xl font-orbitron font-bold text-center mb-12 text-white">
+            <span className="text-neon-blue font-orbitron font-medium mr-2">//</span>
             Climate Intelligence Modules
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.map((m, idx) => (
               <Link key={idx} href={m.href}>
-                <div className="glass p-6 rounded-2xl h-full flex flex-col card-hover cursor-pointer border border-dark-border relative overflow-hidden group">
+                <div className="hud-panel p-6 rounded-2xl h-full flex flex-col card-hover cursor-pointer border border-dark-border/60 relative overflow-hidden group">
                   {/* Neon Corner Glow */}
                   <div
                     className="absolute -top-12 -right-12 w-24 h-24 rounded-full blur-2xl group-hover:scale-150 transition-all duration-300"
                     style={{ background: m.shadow }}
                   />
-                  <div className={`p-3 w-fit rounded-xl bg-gradient-to-br ${m.color} text-[#050B14] mb-5`}>
+                  <div className={`p-3 w-fit rounded-xl bg-gradient-to-br ${m.color} text-[#050B14] mb-5 shadow-lg`}>
                     <m.icon size={22} />
                   </div>
                   <h3 className="text-lg font-orbitron font-bold text-[#E8F4FD] group-hover:text-neon-blue transition-colors mb-2">

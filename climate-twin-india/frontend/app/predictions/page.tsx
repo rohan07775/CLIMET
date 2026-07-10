@@ -86,7 +86,7 @@ export default function PredictionsPage() {
         
         {/* Sidebar: State Select and Monsoon Onset */}
         <div className="flex flex-col gap-6">
-          <GlassCard className="p-5 flex flex-col gap-4">
+          <GlassCard className="hud-panel p-5 flex flex-col gap-4 border border-[#6366F1]/30" glowColor="purple">
             <h2 className="text-xs font-bold font-orbitron text-neon-purple tracking-wider uppercase">
               Target Selection
             </h2>
@@ -107,7 +107,7 @@ export default function PredictionsPage() {
           </GlassCard>
 
           {/* Monsoon Tracker */}
-          <GlassCard className="p-5 flex flex-col gap-4 border-l-4 border-l-neon-purple">
+          <GlassCard className="hud-panel hud-corner-braces p-5 flex flex-col gap-4 border-l-4 border-l-neon-purple" glowColor="purple">
             <h2 className="text-xs font-bold font-orbitron text-neon-purple tracking-wider uppercase flex items-center gap-1.5">
               <Calendar size={14} />
               <span>South-West Monsoon Outlook</span>
@@ -152,7 +152,7 @@ export default function PredictionsPage() {
           </GlassCard>
 
           {/* Digital Twin Counterfactual Simulation Panel */}
-          <GlassCard className="p-5 flex flex-col gap-4 border-l-4 border-l-neon-cyan">
+          <GlassCard className="hud-panel p-5 flex flex-col gap-4 border-l-4 border-l-neon-cyan" glowColor="blue">
             <h2 className="text-xs font-bold font-orbitron text-neon-cyan tracking-wider uppercase flex items-center gap-1.5">
               <Sliders size={14} />
               <span>Climate Simulation Controls</span>
@@ -197,7 +197,7 @@ export default function PredictionsPage() {
 
         {/* 7-Day Forecast Telemetry Grid */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <GlassCard className="p-6">
+          <GlassCard className="hud-panel hud-corner-braces p-6 border border-[#6366F1]/20" glowColor="purple">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <span className="text-[10px] text-neon-purple font-bold font-orbitron tracking-widest uppercase">
