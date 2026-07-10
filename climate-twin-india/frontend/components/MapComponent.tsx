@@ -25,6 +25,21 @@ function ChangeView({ center, zoom }: { center: [number, number]; zoom: number }
   return null
 }
 
+function ZoomTracker({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    onZoomChange(map.getZoom())
+    const handleZoom = () => {
+      onZoomChange(map.getZoom())
+    }
+    map.on('zoomend', handleZoom)
+    return () => {
+      map.off('zoomend', handleZoom)
+    }
+  }, [map, onZoomChange])
+  return null
+}
+
 interface MapComponentProps {
   weatherData: any[]
   activeParameter: 'temperature' | 'rainfall' | 'humidity' | 'wind_speed' | 'aqi' | 'heat_index'
@@ -40,11 +55,15 @@ export default function MapComponent({
 }: MapComponentProps) {
   const [mapCenter] = useState<[number, number]>([22.5726, 78.9629]) // Center of India
   const [mapZoom] = useState<number>(5)
+  const [currentZoom, setCurrentZoom] = useState<number>(5)
   const [radarPath, setRadarPath] = useState<string | null>(null)
 
   useEffect(() => {
     fixLeafletIcons()
   }, [])
+
+  // Dynamically scale heatmap blur standard deviation to keep the temperature layer smooth
+  const blurDeviation = Math.round(55 * Math.pow(1.6, Math.max(0, currentZoom - 5)))
 
   // Fetch latest RainViewer radar timestamp path when looking at rainfall
   useEffect(() => {
@@ -142,7 +161,7 @@ export default function MapComponent({
       <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
         <defs>
           <filter id="heat-blur" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="55" />
+            <feGaussianBlur stdDeviation={blurDeviation} />
             <feColorMatrix type="matrix" values="
               1 0 0 0 0
               0 1 0 0 0
@@ -159,6 +178,8 @@ export default function MapComponent({
         zoomControl={true}
         attributionControl={false}
       >
+        <ZoomTracker onZoomChange={setCurrentZoom} />
+
         {/* Dark satellite-inspired futuristic tile layer (CartoDB Dark Matter) */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -172,6 +193,8 @@ export default function MapComponent({
             url={`https://tilecache.rainviewer.com${radarPath}/256/{z}/{x}/{y}/2/1_1.png`}
             opacity={0.65}
             zIndex={5}
+            maxNativeZoom={10}
+            maxZoom={20}
           />
         )}
 

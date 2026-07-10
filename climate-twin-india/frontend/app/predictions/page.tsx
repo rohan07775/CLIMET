@@ -10,6 +10,26 @@ import RiskMeter from '@/components/ui/RiskMeter'
 import { Brain, Sliders, Calendar, Droplets, Thermometer, CloudLightning } from 'lucide-react'
 import { INDIAN_STATES } from '@/utils/states_coords'
 
+const rainPositions = [
+  { left: '10%', delay: '0.1s', top: '10%' },
+  { left: '25%', delay: '0.4s', top: '30%' },
+  { left: '40%', delay: '0.2s', top: '15%' },
+  { left: '55%', delay: '0.7s', top: '40%' },
+  { left: '70%', delay: '0.3s', top: '20%' },
+  { left: '85%', delay: '0.9s', top: '35%' },
+  { left: '18%', delay: '0.5s', top: '25%' },
+  { left: '33%', delay: '0.8s', top: '5%' },
+]
+
+const starPositions = [
+  { left: '15%', top: '20%', delay: '0.3s' },
+  { left: '30%', top: '40%', delay: '0.7s' },
+  { left: '45%', top: '15%', delay: '1.2s' },
+  { left: '60%', top: '35%', delay: '0.2s' },
+  { left: '75%', top: '25%', delay: '0.9s' },
+  { left: '85%', top: '50%', delay: '1.5s' },
+]
+
 export default function PredictionsPage() {
   const [selectedState, setSelectedState] = useState<string>('Delhi')
   const [predictions, setPredictions] = useState<any>(null)
@@ -68,6 +88,10 @@ export default function PredictionsPage() {
     loadMonsoon()
   }, [])
 
+  const day1 = predictions?.predictions?.[0]
+  const isRaining = day1 ? (day1.rainfall_probability * precipFactor) > 50 : false
+  const isSunny = day1 ? (day1.temperature + forcingOffset) > 30 : true
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8 z-10 relative">
       
@@ -105,6 +129,136 @@ export default function PredictionsPage() {
               </select>
             </div>
           </GlassCard>
+
+          {/* Atmospheric Simulation HUD */}
+          {predictions && predictions.predictions && predictions.predictions.length > 0 && (
+            <GlassCard className="hud-panel hud-corner-braces p-5 flex flex-col gap-4 border border-[#00D4FF]/30 animate-fade-up" glowColor="blue">
+              <h2 className="text-xs font-bold font-orbitron text-neon-blue tracking-wider uppercase flex items-center gap-1.5">
+                <CloudLightning size={14} className="animate-bounce" />
+                <span>Atmospheric Projection HUD</span>
+              </h2>
+              
+              <div className="relative h-40 bg-[#050B14]/70 rounded-xl border border-dark-border/60 overflow-hidden flex items-center justify-center">
+                {/* Embedded style block for weather animations */}
+                <style>{`
+                  @keyframes rain-fall {
+                    0% { transform: translateY(-30px); opacity: 0; }
+                    30% { opacity: 0.7; }
+                    80% { opacity: 0.7; }
+                    100% { transform: translateY(120px); opacity: 0; }
+                  }
+                  @keyframes sun-pulse {
+                    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.4)); }
+                    50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(255, 200, 0, 0.7)); }
+                  }
+                  @keyframes rotate-clockwise {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                  @keyframes moon-sway {
+                    0%, 100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3)); }
+                    50% { transform: translateY(-5px) rotate(5deg); filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5)); }
+                  }
+                  @keyframes star-flash {
+                    0%, 100% { opacity: 0.1; }
+                    50% { opacity: 1; }
+                  }
+                  .rain-drop-1 { animation: rain-fall 0.8s linear infinite; }
+                  .rain-drop-2 { animation: rain-fall 1.1s linear infinite; }
+                  .rain-drop-3 { animation: rain-fall 0.9s linear infinite; }
+                  .sun-core { animation: sun-pulse 3s ease-in-out infinite; }
+                  .sun-rays { animation: rotate-clockwise 25s linear infinite; }
+                  .moon-body { animation: moon-sway 5s ease-in-out infinite; }
+                `}</style>
+
+                {isRaining ? (
+                  // RAIN ANIMATION
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    {/* Simulated raindrops falling */}
+                    <div className="absolute inset-0 pointer-events-none opacity-60">
+                      {rainPositions.map((pPos, i) => (
+                        <div
+                          key={i}
+                          className={`absolute w-[1.5px] h-[15px] bg-neon-blue rounded-full ${
+                            i % 3 === 0 ? 'rain-drop-1' : i % 3 === 1 ? 'rain-drop-2' : 'rain-drop-3'
+                          }`}
+                          style={{
+                            left: pPos.left,
+                            top: pPos.top,
+                            animationDelay: pPos.delay
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {/* Cloud Icon */}
+                    <div className="z-10 flex flex-col items-center gap-2">
+                      <div className="relative">
+                        <span className="text-5xl animate-bounce block">🌧️</span>
+                      </div>
+                      <span className="font-orbitron font-bold text-xs text-neon-blue tracking-widest uppercase">
+                        Rainfall Projected
+                      </span>
+                    </div>
+                  </div>
+                ) : isSunny ? (
+                  // SUNNY ANIMATION
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    {/* Rotating Dashed Rays */}
+                    <div className="w-24 h-24 rounded-full border border-dashed border-accent-orange/30 sun-rays absolute" />
+                    <div className="w-20 h-20 rounded-full border border-dotted border-yellow-400/40 sun-rays absolute" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
+                    
+                    {/* Sun Icon */}
+                    <div className="z-10 flex flex-col items-center gap-2 sun-core">
+                      <span className="text-5xl block">☀️</span>
+                      <span className="font-orbitron font-bold text-xs text-accent-orange tracking-widest uppercase mt-1">
+                        Sunny / Heat Index High
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  // NIGHT / MOON ANIMATION
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    {/* Twinkling stars */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {starPositions.map((sPos, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-1 h-1 bg-white rounded-full"
+                          style={{
+                            left: sPos.left,
+                            top: sPos.top,
+                            animation: `star-flash ${1.5 + (i * 0.2)}s ease-in-out infinite`,
+                            animationDelay: sPos.delay
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Moon Icon */}
+                    <div className="z-10 flex flex-col items-center gap-2 moon-body">
+                      <span className="text-5xl block">🌙</span>
+                      <span className="font-orbitron font-bold text-xs text-neon-purple tracking-widest uppercase mt-1">
+                        Clear Night Conditions
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-1.5 text-xs border-t border-dark-border/55 pt-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Projection Model:</span>
+                  <span className="font-bold text-white font-orbitron">LSTM Sequence Network</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">GHG Warming Offset:</span>
+                  <span className="font-bold text-neon-cyan font-orbitron">
+                    {forcingOffset > 0 ? `+${forcingOffset.toFixed(1)}°C Offset` : 'None (Baseline)'}
+                  </span>
+                </div>
+              </div>
+            </GlassCard>
+          )}
 
           {/* Monsoon Tracker */}
           <GlassCard className="hud-panel hud-corner-braces p-5 flex flex-col gap-4 border-l-4 border-l-neon-purple" glowColor="purple">
