@@ -194,8 +194,8 @@ export default function PredictionsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Sidebar: State Select and Monsoon Onset */}
-        <div className="flex flex-col gap-6">
+        {/* Sidebar Column Part 1: Target Selection (Order-1 on mobile) */}
+        <div className="order-1 lg:col-span-1 flex flex-col gap-6">
           <GlassCard className="hud-panel p-5 flex flex-col gap-4 border border-[#6366F1]/30" glowColor="purple">
             <h2 className="text-xs font-bold font-orbitron text-neon-purple tracking-wider uppercase">
               Target Selection
@@ -270,7 +270,10 @@ export default function PredictionsPage() {
               </div>
             )}
           </GlassCard>
+        </div>
 
+        {/* Sidebar Column Part 2: Secondary Widgets (Order-3 on mobile, floats at bottom) */}
+        <div className="order-3 lg:col-span-1 flex flex-col gap-6">
           {/* Atmospheric Simulation HUD */}
           {predictions && predictions.predictions && predictions.predictions.length > 0 && (
             <GlassCard className="hud-panel hud-corner-braces p-5 flex flex-col gap-4 border border-[#00D4FF]/30 animate-fade-up" glowColor="blue">
@@ -280,38 +283,6 @@ export default function PredictionsPage() {
               </h2>
               
               <div className="relative h-40 bg-[#050B14]/70 rounded-xl border border-dark-border/60 overflow-hidden flex items-center justify-center">
-                {/* Embedded style block for weather animations */}
-                <style>{`
-                  @keyframes rain-fall {
-                    0% { transform: translateY(-30px); opacity: 0; }
-                    30% { opacity: 0.7; }
-                    80% { opacity: 0.7; }
-                    100% { transform: translateY(120px); opacity: 0; }
-                  }
-                  @keyframes sun-pulse {
-                    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.4)); }
-                    50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(255, 200, 0, 0.7)); }
-                  }
-                  @keyframes rotate-clockwise {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                  }
-                  @keyframes moon-sway {
-                    0%, 100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3)); }
-                    50% { transform: translateY(-5px) rotate(5deg); filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5)); }
-                  }
-                  @keyframes star-flash {
-                    0%, 100% { opacity: 0.1; }
-                    50% { opacity: 1; }
-                  }
-                  .rain-drop-1 { animation: rain-fall 0.8s linear infinite; }
-                  .rain-drop-2 { animation: rain-fall 1.1s linear infinite; }
-                  .rain-drop-3 { animation: rain-fall 0.9s linear infinite; }
-                  .sun-core { animation: sun-pulse 3s ease-in-out infinite; }
-                  .sun-rays { animation: rotate-clockwise 25s linear infinite; }
-                  .moon-body { animation: moon-sway 5s ease-in-out infinite; }
-                `}</style>
-
                 {isRaining ? (
                   // RAIN ANIMATION
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -491,7 +462,7 @@ export default function PredictionsPage() {
         </div>
 
         {/* 7-Day Forecast Telemetry Grid */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="order-2 lg:col-span-2 flex flex-col gap-6">
           <GlassCard className="hud-panel hud-corner-braces p-6 border border-[#6366F1]/20" glowColor="purple">
             <div className="flex justify-between items-center mb-6">
               <div>
